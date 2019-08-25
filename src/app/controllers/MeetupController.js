@@ -1,9 +1,34 @@
 import * as Yup from 'yup';
-import { isBefore, parseISO } from 'date-fns';
+import { isBefore, parseISO, startOfDay, endOfDay } from 'date-fns';
+import { Op } from 'sequelize';
+
 import Meetup from '../models/Meetup';
+import User from '../models/User';
 
 class MeetupController {
-  async index(req, res) {}
+  async index(req, res) {
+    const where = {};
+    const page = req.query.page || 1;
+
+    if (req.query.date) {
+      const queryDate = parseISO(req.query.date);
+      where.date = {
+        [Op.between]: [startOfDay(queryDate), endOfDay(queryDate)],
+      };
+    }
+    const meetups = await Meetup.findAll({
+      where,
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'name', 'email'],
+        },
+      ],
+      limit: 10,
+      offset: 10 * page - 10,
+    });
+    return res.json(meetups);
+  }
 
   async store(req, res) {
     const schema = Yup.object().shape({
@@ -28,7 +53,28 @@ class MeetupController {
     return res.json(meetup);
   }
 
-  async delete(req, res) {}
+  async delete(req, res) {
+    const meetup = await Meetup.findByPk(req.params.id, {
+      include: [{ model: User, attributes: ['id', 'name'] }],
+    });
+
+    if (!meetup) {
+      return res.status(400).json({ error: 'Meetup does not exists' });
+    }
+    if (meetup.user_id !== req.userId) {
+      return res.status(401).json({
+        error: "You don't have permission do cancel this meetup",
+      });
+    }
+
+    if (meetup.past) {
+      return res.status(400).json({
+        error: "You can only cancel meetups that haven't already happened.",
+      });
+    }
+    await meetup.destroy();
+    return res.send();
+  }
 }
 
 export default new MeetupController();
