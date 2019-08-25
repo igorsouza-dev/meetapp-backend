@@ -17,6 +17,9 @@ class Subscription extends Model {
     this.belongsTo(models.User, {
       foreignKey: 'user_id',
     });
+    this.belongsTo(models.Meetup, {
+      foreignKey: 'meetup_id',
+    });
   }
 }
 

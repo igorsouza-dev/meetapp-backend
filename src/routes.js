@@ -37,6 +37,6 @@ routes.delete('/meetups/:id', MeetupController.delete);
 routes.get('/organizer', OrganizerController.index);
 
 routes.get('/subscriptions', SubscriptionController.index);
-routes.post('/subscriptions', SubscriptionController.store);
+routes.post('/subscriptions/:id', SubscriptionController.store);
 
 export default routes;
