@@ -1,7 +1,6 @@
 import Sequelize, { Model } from 'sequelize';
-import File from "./File";
 
-class MeetUp extends Model {
+class Meetup extends Model {
   static init(sequelize) {
     super.init(
       {
@@ -9,7 +8,7 @@ class MeetUp extends Model {
         description: Sequelize.STRING,
         localization: Sequelize.STRING,
         date: Sequelize.DATE,
-        banner: Sequelize.STRING,
+        user_id: Sequelize.NUMBER,
       },
       {
         sequelize,
@@ -25,4 +24,4 @@ class MeetUp extends Model {
   }
 }
 
-export default MeetUp;
+export default Meetup;
