@@ -2,6 +2,7 @@ import { Op } from 'sequelize';
 import Subscription from '../models/Subscription';
 import Meetup from '../models/Meetup';
 import User from '../models/User';
+import Mail from '../../lib/Mail';
 
 class SubscriptionController {
   async index(req, res) {
@@ -32,7 +33,15 @@ class SubscriptionController {
   }
 
   async store(req, res) {
-    const meetup = await Meetup.findByPk(req.params.id);
+    const meetup = await Meetup.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          required: true,
+          attributes: ['id', 'name', 'email'],
+        },
+      ],
+    });
 
     if (!meetup) {
       return res.status(400).json({ error: "Meetup doesn't exists." });
@@ -79,6 +88,19 @@ class SubscriptionController {
     const subscription = await Subscription.create({
       user_id: req.userId,
       meetup_id: meetup.id,
+    });
+    const organizer = meetup.User;
+    const user = await User.findByPk(req.userId);
+    await Mail.sendMail({
+      to: `${organizer.name} <${organizer.email}>`,
+      subject: 'New Subscription',
+      template: 'subscription',
+      context: {
+        organizer: organizer.name,
+        user: user.name,
+        email: user.email,
+        meetup: meetup.title,
+      },
     });
 
     return res.json(subscription);
