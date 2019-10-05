@@ -4,6 +4,7 @@ import { Op } from 'sequelize';
 
 import Meetup from '../models/Meetup';
 import User from '../models/User';
+import File from '../models/File';
 
 class MeetupController {
   async index(req, res) {
@@ -28,6 +29,30 @@ class MeetupController {
       offset: 10 * page - 10,
     });
     return res.json(meetups);
+  }
+
+  async find(req, res) {
+    const meetup = await Meetup.findOne({
+      where: {
+        id: req.params.id,
+      },
+      include: [
+        {
+          model: File,
+          attributes: ['id', 'path', 'url'],
+        },
+      ],
+    });
+    if (!meetup) {
+      return res.status(400).json({ error: 'Meetup does not exists.' });
+    }
+
+    if (meetup.user_id !== req.userId) {
+      return res
+        .status(401)
+        .json({ error: "You don't have permission to view this meetup." });
+    }
+    return res.json(meetup);
   }
 
   async update(req, res) {
