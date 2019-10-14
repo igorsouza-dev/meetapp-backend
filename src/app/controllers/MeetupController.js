@@ -24,6 +24,10 @@ class MeetupController {
           model: User,
           attributes: ['id', 'name', 'email'],
         },
+        {
+          model: File,
+          attributes: ['id', 'path', 'url'],
+        },
       ],
       limit: 10,
       offset: 10 * page - 10,
