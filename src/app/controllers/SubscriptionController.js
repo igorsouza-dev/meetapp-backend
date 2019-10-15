@@ -2,6 +2,7 @@ import { Op } from 'sequelize';
 import Subscription from '../models/Subscription';
 import Meetup from '../models/Meetup';
 import User from '../models/User';
+import File from '../models/File';
 
 import Queue from '../../lib/Queue';
 import SubscriptionMail from '../jobs/SubscriptionMail';
@@ -20,6 +21,10 @@ class SubscriptionController {
             {
               model: User,
               attributes: ['id', 'name', 'email'],
+            },
+            {
+              model: File,
+              attributes: ['id', 'path', 'url'],
             },
           ],
           where: {
