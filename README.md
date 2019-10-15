@@ -56,6 +56,12 @@ After installing the project's dependencies, you have to copy the `.env.example`
 
 If you use [Insomnia](https://insomnia.rest/download), I left a `.json` file containing all of the possible API Requests that can be imported into Insomnia.
 
+## Error handling with Sentry
+
+You can also integrate with [Sentry](https://sentry.io) for handling erros in this project while in production. After you signed up in their website and created a project, you should put the DSN inside de `.env` file in a `SENTRY_DSN` variable. Also note that the node environment variable (`NODE_ENV`) should be set to `production` in the `.env` file. If not, the server will handle errors locally.
+
 ---
 
-<div align="center">This project was made during the Rockeseat's Gostack Bootcamp 8.0</div>
+<div align="center">
+This project was made during the Rockeseat's Gostack Bootcamp 8.0 as a challenge in order to get the certification.
+</div>
