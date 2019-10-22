@@ -1,4 +1,3 @@
-import * as Yup from 'yup';
 import { isBefore, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { Op } from 'sequelize';
 
@@ -75,42 +74,17 @@ class MeetupController {
       return res.status(400).json({ error: 'Meetup have already happened.' });
     }
 
-    const schema = Yup.object().shape({
-      title: Yup.string().min(5),
-      description: Yup.string().min(5),
-      localization: Yup.string(),
-      date: Yup.date(),
-      file_id: Yup.number(),
-    });
-
     const parsedDate = parseISO(req.body.date);
     if (isBefore(parsedDate, new Date())) {
       return res.status(400).json({ error: 'Meetup date is on the past.' });
     }
 
-    await schema.validate(req.body).catch(err => {
-      return res.status(400).json({
-        error: err.message,
-      });
-    });
     await meetup.update(req.body);
 
     return res.json(meetup);
   }
 
   async store(req, res) {
-    const schema = Yup.object().shape({
-      title: Yup.string().required('The title is required'),
-      description: Yup.string().required('The description is required'),
-      localization: Yup.string().required('The localization is required'),
-      date: Yup.date().required('The date is required'),
-    });
-    await schema.validate(req.body).catch(err => {
-      return res.status(400).json({
-        error: err.message,
-      });
-    });
-
     const parsedDate = parseISO(req.body.date);
     if (isBefore(parsedDate, new Date())) {
       return res.status(400).json({ error: 'Meetup date is on the past.' });
