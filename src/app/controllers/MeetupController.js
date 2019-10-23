@@ -9,6 +9,8 @@ import CreateMeetupService from '../services/CreateMeetupService';
 import UpdateMeetupService from '../services/UpdateMeetupService';
 import DestroyMeetupService from '../services/DestroyMeetupService';
 
+import Cache from '../../lib/Cache';
+
 class MeetupController {
   async index(req, res) {
     const where = {};
@@ -63,6 +65,8 @@ class MeetupController {
   }
 
   async update(req, res) {
+    await Cache.invalidate(`user:${req.userId}:meetups`);
+
     const meetup = await UpdateMeetupService.run({
       meetup_id: req.params.id,
       user_id: req.userId,
@@ -74,6 +78,8 @@ class MeetupController {
   }
 
   async store(req, res) {
+    await Cache.invalidate(`user:${req.userId}:meetups`);
+
     const meetup = await CreateMeetupService.run({
       date: req.body.date,
       body_inputs: req.body,
@@ -83,6 +89,8 @@ class MeetupController {
   }
 
   async delete(req, res) {
+    await Cache.invalidate(`user:${req.userId}:meetups`);
+
     await DestroyMeetupService.run({
       meetup_id: req.params.id,
       user_id: req.userId,
