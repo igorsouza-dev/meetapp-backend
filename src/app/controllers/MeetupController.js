@@ -1,9 +1,13 @@
-import { isBefore, parseISO, startOfDay, endOfDay } from 'date-fns';
+import { parseISO, startOfDay, endOfDay } from 'date-fns';
 import { Op } from 'sequelize';
 
 import Meetup from '../models/Meetup';
 import User from '../models/User';
 import File from '../models/File';
+
+import CreateMeetupService from '../services/CreateMeetupService';
+import UpdateMeetupService from '../services/UpdateMeetupService';
+import DestroyMeetupService from '../services/DestroyMeetupService';
 
 class MeetupController {
   async index(req, res) {
@@ -59,62 +63,30 @@ class MeetupController {
   }
 
   async update(req, res) {
-    const meetup = await Meetup.findByPk(req.params.id);
-    if (!meetup) {
-      return res.status(400).json({ error: 'Meetup does not exists.' });
-    }
-
-    if (meetup.user_id !== req.userId) {
-      return res
-        .status(401)
-        .json({ error: "You don't have permission to change this meetup." });
-    }
-
-    if (meetup.past) {
-      return res.status(400).json({ error: 'Meetup have already happened.' });
-    }
-
-    const parsedDate = parseISO(req.body.date);
-    if (isBefore(parsedDate, new Date())) {
-      return res.status(400).json({ error: 'Meetup date is on the past.' });
-    }
-
-    await meetup.update(req.body);
+    const meetup = await UpdateMeetupService.run({
+      meetup_id: req.params.id,
+      user_id: req.userId,
+      date: req.body.date,
+      data: req.body,
+    });
 
     return res.json(meetup);
   }
 
   async store(req, res) {
-    const parsedDate = parseISO(req.body.date);
-    if (isBefore(parsedDate, new Date())) {
-      return res.status(400).json({ error: 'Meetup date is on the past.' });
-    }
-
-    const inputs = { ...req.body, user_id: req.userId };
-    const meetup = await Meetup.create(inputs);
+    const meetup = await CreateMeetupService.run({
+      date: req.body.date,
+      body_inputs: req.body,
+      user_id: req.userId,
+    });
     return res.json(meetup);
   }
 
   async delete(req, res) {
-    const meetup = await Meetup.findByPk(req.params.id, {
-      include: [{ model: User, attributes: ['id', 'name'] }],
+    await DestroyMeetupService.run({
+      meetup_id: req.params.id,
+      user_id: req.userId,
     });
-
-    if (!meetup) {
-      return res.status(400).json({ error: 'Meetup does not exists' });
-    }
-    if (meetup.user_id !== req.userId) {
-      return res.status(401).json({
-        error: "You don't have permission do cancel this meetup",
-      });
-    }
-
-    if (meetup.past) {
-      return res.status(400).json({
-        error: "You can only cancel meetups that haven't already happened.",
-      });
-    }
-    await meetup.destroy();
     return res.send();
   }
 }

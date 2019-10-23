@@ -4,8 +4,7 @@ import Meetup from '../models/Meetup';
 import User from '../models/User';
 import File from '../models/File';
 
-import Queue from '../../lib/Queue';
-import SubscriptionMail from '../jobs/SubscriptionMail';
+import CreateSubscriptionService from '../services/CreateSubscriptionService';
 
 class SubscriptionController {
   async index(req, res) {
@@ -40,69 +39,9 @@ class SubscriptionController {
   }
 
   async store(req, res) {
-    const meetup = await Meetup.findByPk(req.params.id, {
-      include: [
-        {
-          model: User,
-          required: true,
-          attributes: ['id', 'name', 'email'],
-        },
-      ],
-    });
-
-    if (!meetup) {
-      return res.status(400).json({ error: "Meetup doesn't exists." });
-    }
-
-    if (meetup.past) {
-      return res.status(400).json({ error: 'Meetup has already happened.' });
-    }
-
-    if (meetup.user_id === req.userId) {
-      return res
-        .status(400)
-        .json({ error: "You can't subscribe to your own meetup." });
-    }
-
-    const subscriptions = await Subscription.findAll({
-      where: { user_id: req.userId, meetup_id: meetup.id },
-    });
-
-    if (subscriptions.length > 0) {
-      return res
-        .status(400)
-        .json({ error: 'You are already subscribed to this meetup.' });
-    }
-    const sameTimeSubscriptions = await Subscription.findAll({
-      where: {
-        user_id: req.userId,
-      },
-      include: [
-        {
-          model: Meetup,
-          required: true,
-          where: { date: meetup.date },
-        },
-      ],
-    });
-
-    if (sameTimeSubscriptions.length > 0) {
-      return res.status(400).json({
-        error: 'You are already subscribed to another meetup on the same date.',
-      });
-    }
-
-    const subscription = await Subscription.create({
+    const subscription = await CreateSubscriptionService.run({
+      meetup_id: req.params.id,
       user_id: req.userId,
-      meetup_id: meetup.id,
-    });
-    const organizer = meetup.User;
-    const user = await User.findByPk(req.userId);
-
-    await Queue.add(SubscriptionMail.key, {
-      organizer,
-      user,
-      meetup,
     });
 
     return res.json(subscription);
