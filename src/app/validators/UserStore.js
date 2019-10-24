@@ -15,8 +15,9 @@ export default async (req, res, next) => {
     return next();
   } catch (err) {
     return res.status(400).json({
-      error: 'Some information could not be validated!',
-      messages: err.inner,
+      error: `Some information could not be validated: ${err.inner
+        .map(error => error.message)
+        .join(', ')}`,
     });
   }
 };

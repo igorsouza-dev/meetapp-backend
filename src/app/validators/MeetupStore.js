@@ -4,7 +4,10 @@ export default async (req, res, next) => {
   try {
     const schema = Yup.object().shape({
       title: Yup.string().required('The title is required'),
-      description: Yup.string().required('The description is required'),
+      description: Yup.string()
+        .min(25)
+        .max(255)
+        .required('The description is required'),
       localization: Yup.string().required('The localization is required'),
       date: Yup.date().required('The date is required'),
     });
@@ -12,8 +15,9 @@ export default async (req, res, next) => {
     return next();
   } catch (err) {
     return res.status(400).json({
-      error: 'Some information could not be validated!',
-      messages: err.inner,
+      error: `Some information could not be validated: ${err.inner
+        .map(error => error.message)
+        .join(', ')}`,
     });
   }
 };

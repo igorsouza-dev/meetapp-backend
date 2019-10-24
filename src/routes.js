@@ -12,8 +12,8 @@ import MeetupController from './app/controllers/MeetupController';
 import FileController from './app/controllers/FileController';
 import OrganizerController from './app/controllers/OrganizerController';
 
-import validadeUserStore from './app/validators/UserStore';
-import validadeUserUpdate from './app/validators/UserUpdate';
+import validateUserStore from './app/validators/UserStore';
+import validateUserUpdate from './app/validators/UserUpdate';
 import validateSessionStore from './app/validators/SessionStore';
 import validateMeetupStore from './app/validators/MeetupStore';
 import validateMeetupUpdate from './app/validators/MeetupUpdate';
@@ -32,7 +32,7 @@ const bruteForce = new Brute(bruteStore);
 
 routes.get('/', (req, res) => res.send('ok'));
 
-routes.post('/users', validadeUserStore, UserController.store);
+routes.post('/users', validateUserStore, UserController.store);
 routes.post(
   '/session',
   bruteForce.prevent,
@@ -43,7 +43,7 @@ routes.post(
 // \/ protected routes \/
 routes.use(authMiddleware);
 
-routes.put('/users', validadeUserUpdate, UserController.update);
+routes.put('/users', validateUserUpdate, UserController.update);
 
 routes.post('/files', upload.single('file'), FileController.store);
 
